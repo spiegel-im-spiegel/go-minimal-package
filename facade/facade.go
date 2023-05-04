@@ -1,6 +1,9 @@
 package facade
 
 import (
+	"context"
+	"os"
+	"os/signal"
 	"runtime"
 
 	"github.com/goark/errs"
@@ -61,9 +64,13 @@ func Execute(ui *rwi.RWI, args []string) (exit exitcode.ExitCode) {
 		}
 	}()
 
+	// create interrupt SIGNAL
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
 	//execution
 	exit = exitcode.Normal
-	if err := newRootCmd(ui, args).Execute(); err != nil {
+	if err := newRootCmd(ui, args).ExecuteContext(ctx); err != nil {
 		exit = exitcode.Abnormal
 	}
 	return
